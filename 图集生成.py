@@ -44,7 +44,7 @@ for file in files:	# 预处理
 	width = img.shape[1]
 	depth = img.shape[2]	# 图像通道数
 
-	if depth == 4 and (img[0][0][3] == 0 or img[height - 1][width - 1][3] == 0):
+	if depth == 4:
 		img = borderSlicer(img, width, height)	# 消除透明底图片的多余边界
 
 	height = img.shape[0]	# 去除透明边界后的长宽
@@ -81,19 +81,23 @@ def stitchingOnX(prepareImg):
 		return stitchingOnX(prepareImg[:-1])
 	return img, len(prepareImg)	# 返回合成图和使用图片数
 
-lineImg = []	# 横向拼接
-
-for i in range(linePerPage):
-	img, imgUsed = stitchingOnX(files[:imgPerLine])
-
-	height = img.shape[0]
-	width = img.shape[1]
-	height = int((height / width) * BasicWidth)
-	width = BasicWidth
-
-	img = cv2.resize(img, (width, height), interpolation = cv2.INTER_AREA) 	# 将图片宽度标准化到BasicWidth
-	lineImg.append(img)
-	del files[:imgUsed]	# 删除拼接过的图
-
-output = np.concatenate(lineImg, axis = 0)
-cv2.imwrite('./output/result.png', output)
+pageCounter = 0
+while len(files) > linePerPage * imgPerLine:
+	lineImg = []	# 横向拼接
+	
+	for i in range(linePerPage):
+		img, imgUsed = stitchingOnX(files[:imgPerLine])
+	
+		height = img.shape[0]
+		width = img.shape[1]
+		height = int((height / width) * BasicWidth)
+		width = BasicWidth
+	
+		img = cv2.resize(img, (width, height), interpolation = cv2.INTER_AREA) 	# 将图片宽度标准化到BasicWidth
+		lineImg.append(img)
+		del files[:imgUsed]	# 删除拼接过的图
+	
+	output = np.concatenate(lineImg, axis = 0)
+	cv2.imwrite('./output/' + str(pageCounter) + '.png', output)
+	print('imgOutput_' + str(pageCounter) + '\n\n')
+	pageCounter += 1
