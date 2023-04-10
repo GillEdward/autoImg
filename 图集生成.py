@@ -46,29 +46,42 @@ for file in files:	# 预处理
 	width = img.shape[1]
 	#print(height, width)
 
-	width = int((width / height) * 1000)
-	height = 1000
+	width = int((width / height) * 1500)
+	height = 1500
 
-	img = cv2.resize(img, (width, height), interpolation = cv2.INTER_AREA) 	# 将图片高度标准化到1000px
+	img = cv2.resize(img, (width, height), interpolation = cv2.INTER_AREA) 	# 将图片高度标准化到1500px
 	
 	cv2.imwrite('./input/' + file, img)
 
 '''
-1、基准高度1000px, 将5张图片转为n*1000px, 然后拼接在一起
+1、基准高度1500px, 将5张图片转为n*1500px, 然后拼接在一起
 2、基准宽度范围7000, 若n大于7000px, 则回到1, 尝试减少1张
-3、若n小于7000px, 将连接在一起的图片宽度等比放大到6000px
-4、6列为一张，生成6000*6000px的组合图
+3、若n小于7000px, 将连接在一起的图片宽度等比放大到9000px
+4、4列为一张，生成组合图
 '''
 
-# 横向拼接
-prepareImg = files[:5]	# 取五张图准备
+lineImg = []	# 横向拼接
 
-imgList = []
-widthSum = 0
-for file in prepareImg:
-	imgList.append(cv2.imread('./input/' + file, -1))
-	widthSum += imgList[-1].shape[1]
-print('widthSum: ' + str(widthSum))
+for i in range(4):
+	prepareImg = files[:5]	# 取五张图准备
+	
+	imgList = []
+	widthSum = 0
+	for file in prepareImg:
+		imgList.append(cv2.imread('./input/' + file, 3))
+		widthSum += imgList[-1].shape[1]
+	print('widthSum: ' + str(widthSum))
+	
+	img = np.concatenate(imgList, axis=1)	# 将图片横向拼接并保存到数组
+	height = img.shape[0]
+	width = img.shape[1]
 
-line = np.concatenate(imgList, axis=1)
-cv2.imwrite('./output/' + '1.png', line)
+	height = int((height / width) * 9000)
+	width = 9000
+
+	img = cv2.resize(img, (width, height), interpolation = cv2.INTER_AREA) 	# 将图片宽度标准化到9000px
+	lineImg.append(img)
+	del files[:5]	# 删除拼接过的5张图
+
+output = np.concatenate(lineImg, axis = 0)
+cv2.imwrite('./output/result.png', output)
