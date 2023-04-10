@@ -2,6 +2,11 @@ import cv2
 import os
 import numpy as np
 
+imgPerLine = 5
+linePerPage = 4
+BasicWidth = 6000
+BasicHeight = 1000
+
 def borderSlicer(img, width, height):
 	minX = width
 	minY = height
@@ -46,25 +51,21 @@ for file in files:	# 预处理
 	width = img.shape[1]
 	#print(height, width)
 
-	width = int((width / height) * 1500)
-	height = 1500
+	width = int((width / height) * BasicHeight)
+	height = BasicHeight
 
-	img = cv2.resize(img, (width, height), interpolation = cv2.INTER_AREA) 	# 将图片高度标准化到1500px
+	img = cv2.resize(img, (width, height), interpolation = cv2.INTER_AREA) 	# 将图片高度标准化到BasicHeightpx
 	
 	cv2.imwrite('./input/' + file, img)
 
 '''
-1、基准高度1500px, 将5张图片转为n*1500px, 然后拼接在一起
-2、基准宽度范围7000, 若n大于7000px, 则回到1, 尝试减少1张
-3、若n小于7000px, 将连接在一起的图片宽度等比放大到9000px
-4、4列为一张，生成组合图
+1、基准高度BasicHeight, 将5张图片转为n*BasicHeight, 然后拼接在一起
+2、基准宽度范围BasicWidth, 若n大于BasicWidth, 则回到1, 尝试减少1张
+3、若n小于BasicWidth, 将连接在一起的图片宽度等比放大到BasicWidth
+4、linePerPage列为一张，生成组合图
 '''
 
-lineImg = []	# 横向拼接
-
-for i in range(4):
-	prepareImg = files[:5]	# 取五张图准备
-	
+def stitchingOnX(prepareImg):
 	imgList = []
 	widthSum = 0
 	for file in prepareImg:
@@ -73,15 +74,26 @@ for i in range(4):
 	print('widthSum: ' + str(widthSum))
 	
 	img = np.concatenate(imgList, axis=1)	# 将图片横向拼接并保存到数组
-	height = img.shape[0]
 	width = img.shape[1]
 
-	height = int((height / width) * 9000)
-	width = 9000
+	if width > BasicWidth:	# 若超出最大宽度, 则减少一张
+		print('Bigger than BasicWidth!')
+		return stitchingOnX(prepareImg[:-1])
+	return img, len(prepareImg)	# 返回合成图和使用图片数
 
-	img = cv2.resize(img, (width, height), interpolation = cv2.INTER_AREA) 	# 将图片宽度标准化到9000px
+lineImg = []	# 横向拼接
+
+for i in range(linePerPage):
+	img, imgUsed = stitchingOnX(files[:imgPerLine])
+
+	height = img.shape[0]
+	width = img.shape[1]
+	height = int((height / width) * BasicWidth)
+	width = BasicWidth
+
+	img = cv2.resize(img, (width, height), interpolation = cv2.INTER_AREA) 	# 将图片宽度标准化到BasicWidth
 	lineImg.append(img)
-	del files[:5]	# 删除拼接过的5张图
+	del files[:imgUsed]	# 删除拼接过的图
 
 output = np.concatenate(lineImg, axis = 0)
 cv2.imwrite('./output/result.png', output)
