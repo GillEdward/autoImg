@@ -40,6 +40,9 @@ def borderSlicer(img, width, height):
 files = os.listdir('./input')
 
 for file in files:	# 预处理
+	if file[-4:] == '.gif':	# 跳过gif文件
+		continue
+
 	img = cv2.imread('./input/' + file, -1)
 	height = img.shape[0]
 	width = img.shape[1]
