@@ -39,12 +39,14 @@ def borderSlicer(img, width, height):
 files = os.listdir('./input')
 
 for file in files:	# 预处理
-	img = cv2.imread('./input/' + file, -1)
+	img = cv2.imread('./input/' + file, 3)
 	height = img.shape[0]
 	width = img.shape[1]
 	depth = img.shape[2]	# 图像通道数
 
 	if depth == 4:
+		continue	# 跳过裁剪可以避免透明图写入错误
+
 		img = borderSlicer(img, width, height)	# 消除透明底图片的多余边界
 		height = img.shape[0]
 		width = img.shape[1]
