@@ -111,6 +111,6 @@ while len(files) > linePerPage * imgPerLine:
 		del files[:imgUsed]	# 删除拼接过的图
 	
 	output = np.concatenate(lineImg, axis = 0)
-	cv2.imwrite('./output/' + str(pageCounter) + '.png', output)
 	print('imgOutput_' + str(pageCounter) + '\n\n')
+	cv2.imwrite('./output/' + str(pageCounter) + '.png', output)
 	pageCounter += 1
