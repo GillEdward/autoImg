@@ -46,9 +46,17 @@ for file in files:	# 预处理
 
 	if depth == 4:
 		img = borderSlicer(img, width, height)	# 消除透明底图片的多余边界
-
-	height = img.shape[0]	# 去除透明边界后的长宽
-	width = img.shape[1]
+		height = img.shape[0]
+		width = img.shape[1]
+		for x in range(width):	# 手动白底
+			for y in range(height):
+				if img[y][x][3] <= 50:
+					img[y][x][3] = 255
+					for i in range(3):
+						img[y][x][i] = 255
+	else:
+		height = img.shape[0]	# 去除透明边界后的长宽
+		width = img.shape[1]
 	#print(height, width)
 
 	width = int((width / height) * BasicHeight)
