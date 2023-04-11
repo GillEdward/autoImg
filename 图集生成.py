@@ -6,7 +6,7 @@ imgPerLine = 5
 linePerPage = 4
 BasicWidth = 6000
 BasicHeight = 1000
-transparentThreshold = 120	# 如果出现透明底图片被全部变成白色, 可以调高该阈值
+transparentThreshold = 190	# 如果出现透明底图片输出错误, 可以调整该阈值
 
 def borderSlicer(img, width, height):
 	minX = width
@@ -18,7 +18,7 @@ def borderSlicer(img, width, height):
 
 	for x in range(0, width, gap):
 		for y in range(0, height, gap):
-			if img[y][x][3] != 0:
+			if img[y][x][3] >= transparentThreshold:
 				if x < minX:
 					minX = x
 				if y < minY:
@@ -46,19 +46,22 @@ for file in files:	# 预处理
 	try:
 		depth = img.shape[2]	# 图像通道数
 	except IndexError:	# 灰度图没有.shpae[2], 直接将depth赋值为3
+		print('Reading Gray as RGB...')
 		depth = 3
 
+
 	if depth == 4:
-		print('Processing Transparent Background...')
-		img = borderSlicer(img, width, height)	# 消除透明底图片的多余边界
-		height = img.shape[0]
-		width = img.shape[1]
-		for x in range(width):	# 手动白底
-			for y in range(height):
-				if img[y][x][3] <= transparentThreshold:
-					img[y][x][3] = 255
-					for i in range(3):
-						img[y][x][i] = 255
+		if img[0][0][3] <= transparentThreshold and img[height - 1][width - 1][3] <= transparentThreshold:
+			print('Processing Transparent Background ' + file + '...')
+			img = borderSlicer(img, width, height)	# 消除透明底图片的多余边界
+			height = img.shape[0]
+			width = img.shape[1]
+			for x in range(width):	# 手动白底
+				for y in range(height):
+					if img[y][x][3] <= transparentThreshold:
+						img[y][x][3] = 255
+						for i in range(3):
+							img[y][x][i] = 255
 	#print(height, width)
 
 	width = int((width / height) * BasicHeight)
